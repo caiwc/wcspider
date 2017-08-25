@@ -22,9 +22,9 @@ class Spider(object):
 
     async def analysis(self, data):
         res = {
-            "arg":data["args"]["a"],
-            "origin":data["origin"],
-            "url":data["url"]
+            "arg": data["args"]["a"],
+            "origin": data["origin"],
+            "url": data["url"]
         }
         self.result.append(res)
 
@@ -40,6 +40,7 @@ class Spider(object):
         loop.run_until_complete(f)
         loop.close()
         print(self.result)
+
 
 if __name__ == '__main__':
     s = Spider(url_list=[1, 5, 6, 73, 4])
