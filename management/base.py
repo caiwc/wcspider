@@ -1,5 +1,5 @@
 from argparse import ArgumentParser
-import os , sys
+import os, sys
 
 
 class CommandParser(ArgumentParser):
@@ -18,46 +18,36 @@ class CommandParser(ArgumentParser):
             raise Exception("Error: %s" % message)
 
 
-# class OutputWrapper(object):
-#     @property
-#     def style_func(self):
-#         return self._style_func
-#
-#     @style_func.setter
-#     def style_func(self, style_func):
-#         if style_func and self.isatty():
-#             self._style_func = style_func
-#         else:
-#             self._style_func = lambda x: x
-#
-#     def __init__(self, out, style_func=None, ending='\n'):
-#         self._out = out
-#         self.style_func = None
-#         self.ending = ending
-#
-#     def __getattr__(self, name):
-#         return getattr(self._out, name)
-#
-#     def isatty(self):
-#         return hasattr(self._out, 'isatty') and self._out.isatty()
-#
-#     def write(self, msg, style_func=None, ending=None):
-#         ending = self.ending if ending is None else ending
-#         if ending and not msg.endswith(ending):
-#             msg += ending
-#         style_func = style_func or self.style_func
-#         self._out.write(style_func(msg))
+class OutputWrapper(object):
+    def __init__(self, out, ending='\n'):
+        self._out = out
+        self.style_func = None
+        self.ending = ending
+
+    def write(self, msg, ending=None):
+        ending = self.ending if ending is None else ending
+        if ending and not msg.endswith(ending):
+            msg += ending
+        self._out.write(msg)
 
 
 class BaseCommand(object):
     help = ''
     _called_from_command_line = False
 
+    def __init__(self):
+        self.stdout = OutputWrapper(sys.stdout)
+        self.stderr = OutputWrapper(sys.stderr)
+
     def add_arguments(self, parser):
         pass
 
     def handle(self, *args, **options):
         raise NotImplementedError('subclasses of BaseCommand must provide a handle() method')
+
+    def print_help(self, prog_name, subcommand):
+        parser = self.create_parser(prog_name, subcommand)
+        parser.print_help()
 
     def create_parser(self, prog_name, subcommand):
         parser = CommandParser(
@@ -70,9 +60,9 @@ class BaseCommand(object):
     def execute(self, *args, **options):
         try:
             output = self.handle(*args, **options)
+            return output
         except Exception as e:
-            raise ValueError(e)
-        return output
+            self.stderr.write(str(e))
 
     def run(self, argv):
         self._called_from_command_line = True
@@ -83,4 +73,4 @@ class BaseCommand(object):
         try:
             self.execute(*args, **cmd_options)
         except Exception as e:
-            raise ValueError(e)
+            self.stderr.write(str(e))
