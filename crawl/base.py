@@ -1,50 +1,76 @@
 import asyncio
 import aiohttp
-from settings import Queue_num, Semaphore_num
+from settings import Queue_num, Semaphore_num, sleep_time
 
 
 class Spider(object):
     url_list = []
-    queue = asyncio.Queue(Queue_num)
     result = []
+    method = 'get'
+    http_type = ""
+    loop = None
+    session = None
+    cookies = {}
+    headers = {}
+    queue = asyncio.Queue(Queue_num)
     sema = asyncio.Semaphore(Semaphore_num)
 
-    @classmethod
-    async def fetch_async(cls, method):
-        while True:
-            url = await cls.queue.get()
-            with (await cls.sema):
-                async with aiohttp.request(method=method, url='http://httpbin.org/get?a={}'.format(url)) as r:
-                    print("get {}...".format(url))
+    async def request(self, url):
+        with self.session or aiohttp.ClientSession(cookies=self.cookies) as session:
+            async with session.request(method=self.method, url='http://httpbin.org/get?a={}'.format(url),
+                                       headers=self.headers) as r:
+                print("get -> {}".format(url))
+                if self.http_type == "json":
                     data = await r.json()
+                elif self.http_type == "read":
+                    data = await r.read()
+                else:
+                    data = await r.text()
+            await asyncio.sleep(sleep_time)
+            return data, r
 
-            cls.queue.task_done()
-            await cls.analysis(data)
+    async def fetch_async(self):
+        while True:
+            url = await self.queue.get()
+            with (await self.sema):
+                data, r = await self.request(url)
+            self.queue.task_done()
+            await self.analysis_async(data, r)
 
-    @classmethod
-    async def analysis(cls, data):
-        res = {
-            "arg": data["args"]["a"],
-            "origin": data["origin"],
-            "url": data["url"]
-        }
-        cls.result.append(res)
+    async def analysis_async(self, data, resp):
+        res = self.parser(data, resp)
+        self.result.append(res)
 
-    @classmethod
-    async def start(cls, item):
-        fetch = asyncio.ensure_future(cls.fetch_async('GET'))
-        await cls.queue.put(item)
-        await cls.queue.join()
+    async def start_async(self, item):
+        fetch = asyncio.ensure_future(self.fetch_async())
+        await self.queue.put(item)
+        await self.queue.join()
         fetch.cancel()
 
-    @classmethod
-    def run(cls):
-        loop = asyncio.get_event_loop()
-        f = asyncio.wait([cls.start(num) for num in cls.url_list])
-        loop.run_until_complete(f)
-        loop.close()
-        print(cls.result)
+    def run(self):
+        self.loop = asyncio.get_event_loop()
+        f = asyncio.wait([self.start_async(url) for url in self.url_list])
+        self.loop.run_until_complete(f)
+        self.loop.close()
+        print(self.result)
+
+    def parser(self, data, resp):
+        # 解析数据
+        return data
+
+    def put_url(self, url):
+        # 添加协程进入事件循环
+        # asyncio.ensure_future(self.put_async(url))
+        task = self.loop.create_task(self.put_async(url))
+        print(task)
+
+    async def put_async(self, url):
+        # 将需要爬取的url放入队列
+        await self.queue.put(url)
+        print("put -> {}".format(url))
 
 
 if __name__ == '__main__':
-    Spider.run()
+    s = Spider()
+    s.url_list = [1, 6, 7, 34, 53]
+    s.run()
