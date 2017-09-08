@@ -1,11 +1,11 @@
 import asyncio
 import aiohttp
+from crawl.filter import BaseFilter
 from settings import Queue_num, Semaphore_num, sleep_time
 
 
 class Spider(object):
-    url_list = []
-    result = []
+    url_list = set()
     method = 'get'
     http_type = ""
     loop = None
@@ -14,6 +14,10 @@ class Spider(object):
     headers = {}
     queue = asyncio.Queue(Queue_num)
     sema = asyncio.Semaphore(Semaphore_num)
+
+    def __init__(self):
+        self.seen = BaseFilter()
+        self.result = []
 
     async def request(self, url):
         with self.session or aiohttp.ClientSession(cookies=self.cookies) as session:
@@ -32,10 +36,15 @@ class Spider(object):
     async def fetch_async(self):
         while True:
             url = await self.queue.get()
-            with (await self.sema):
-                data, r = await self.request(url)
-            self.queue.task_done()
-            await self.analysis_async(data, r)
+            if self.seen.add(url):
+                with (await self.sema):
+                    data, r = await self.request(url)
+                self.queue.task_done()
+                await self.analysis_async(data, r)
+            else:
+                self.queue.task_done()
+
+
 
     async def analysis_async(self, data, resp):
         res = self.parser(data, resp)
@@ -61,8 +70,13 @@ class Spider(object):
     def put_url(self, url):
         # 添加协程进入事件循环
         # asyncio.ensure_future(self.put_async(url))
+
         task = self.loop.create_task(self.put_async(url))
         print(task)
+
+    async def check(self,url):
+        if not self.seen.add(url):
+            return False
 
     async def put_async(self, url):
         # 将需要爬取的url放入队列

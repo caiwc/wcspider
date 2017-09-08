@@ -2,7 +2,7 @@ from crawl.base import Spider
 
 
 class testspider(Spider):
-    url_list = [1, 2, 4, 5, 23, 54, 23, 6, 8, 9, 4]
+    url_list = (1, 55, 4, 5, 23, 54, 6, 54, 54, 4)
     headers = {'content-type': 'application/json'}
     http_type = "json"
 
@@ -15,7 +15,7 @@ class testspider(Spider):
         }
         num = data["args"]["a"]
         if int(num) % 3 == 0:
-            self.put_url(str(int(num) + 1))
+            self.put_url(int(num) + 1)
         print(resp.url)
         return res
 
@@ -26,3 +26,4 @@ if __name__ == '__main__':
     s = testspider()
     s.run()
     print(s.result.__len__(),time.time()-now)
+    print(s.seen.seen_url)
