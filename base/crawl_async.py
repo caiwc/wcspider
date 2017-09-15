@@ -23,7 +23,7 @@ class Spider(object):
         with self.session or aiohttp.ClientSession(cookies=self.cookies) as session:
             async with session.request(method=self.method, url='http://httpbin.org/get?a={}'.format(url),
                                        headers=self.headers) as r:
-                print("get -> {}".format(url))
+                print("get -> {}".format(url), "<code %s>" % str(r.status))
                 if self.http_type == "json":
                     data = await r.json()
                 elif self.http_type == "read":
