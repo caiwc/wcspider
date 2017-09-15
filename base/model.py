@@ -25,9 +25,9 @@ class Item(object):
     def get_all(cls):
         field_dict = cls.__dict__
         all_attr = {}
-        for key,field in field_dict.items():
+        for key, field in field_dict.items():
             if isinstance(field, Field):
-                all_attr[key]=field.value
+                all_attr[key] = field.value
         return all_attr
 
     def get(self, key, default=None):
@@ -37,8 +37,10 @@ class Item(object):
         else:
             return default
 
-    def set(self, key, value):
+    def set(self, key, value, default=None):
         feild = self.__getattr(key)
+        if not value:
+            value = default
         if feild.set(value):
             return True
 
