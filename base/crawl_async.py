@@ -1,6 +1,6 @@
 import asyncio
 import aiohttp
-from crawl.filter import BaseFilter
+from base.filter import BaseFilter
 from settings import Queue_num, Semaphore_num, sleep_time
 
 
@@ -39,12 +39,10 @@ class Spider(object):
             if self.seen.add(url):
                 with (await self.sema):
                     data, r = await self.request(url)
-                self.queue.task_done()
                 await self.analysis_async(data, r)
+                self.queue.task_done()
             else:
                 self.queue.task_done()
-
-
 
     async def analysis_async(self, data, resp):
         res = self.parser(data, resp)
@@ -74,7 +72,7 @@ class Spider(object):
         task = self.loop.create_task(self.put_async(url))
         print(task)
 
-    async def check(self,url):
+    async def check(self, url):
         if not self.seen.add(url):
             return False
 

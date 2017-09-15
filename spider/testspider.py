@@ -1,4 +1,4 @@
-from crawl.base import Spider
+from base.crawl_async import Spider
 
 
 class testspider(Spider):
