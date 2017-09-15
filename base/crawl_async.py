@@ -59,7 +59,6 @@ class Spider(object):
         f = asyncio.wait([self.start_async(url) for url in self.url_list])
         self.loop.run_until_complete(f)
         self.loop.close()
-        print(self.result)
 
     def parser(self, data, resp):
         # 解析数据
