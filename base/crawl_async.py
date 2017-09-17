@@ -5,7 +5,7 @@ from settings import Queue_num, Semaphore_num, sleep_time
 
 
 class Spider(object):
-    url_list = set()
+    url_list = []
     method = 'get'
     http_type = ""
     loop = None
@@ -20,8 +20,8 @@ class Spider(object):
         self.result = []
 
     async def request(self, url):
-        with self.session or aiohttp.ClientSession(cookies=self.cookies) as session:
-            async with session.request(method=self.method, url='http://httpbin.org/get?a={}'.format(url),
+        with self.session or aiohttp.ClientSession(cookies=self.cookies,conn_timeout=2) as session:
+            async with session.request(method=self.method, url=url,
                                        headers=self.headers) as r:
                 print("get -> {}".format(url), "<code %s>" % str(r.status))
                 if self.http_type == "json":

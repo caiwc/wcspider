@@ -26,17 +26,26 @@
 # asyncio.run_coroutine_threadsafe(do_some_work(6), new_loop)
 # asyncio.run_coroutine_threadsafe(do_some_work(2), new_loop)
 
-from base.loader import ItemLoader
-from item import TestItem
+# from base.loader import ItemLoader
+# from item import TestItem
+#
+# i = ItemLoader(TestItem, 'html')
+# i.add_soup('name', 'name1')
+# i.add_soup('num', '12')
+# i.add_soup('url', 'wewda')
+#
+# b = TestItem()
+# b.set('name', 'name12')
+# b.set('num', '53')
+# b.set('url', 'wdwvwe')
+#
+# print(i.item.get_all())
 
-i = ItemLoader(TestItem, 'html')
-i.add_soup('name', 'name1')
-i.add_soup('num', '12')
-i.add_soup('url', 'wewda')
+import re
 
-b = TestItem()
-b.set('name', 'name12')
-b.set('num', '53')
-b.set('url', 'wdwvwe')
+url = "http://www.jianshu.com/search?q=python&page=1&type=note"
 
-print(i.item.get_all())
+if re.match("^http://www\.jianshu\.com/search\?q.*",url):
+    print(1)
+else:
+    print(123)
