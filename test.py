@@ -41,11 +41,21 @@
 #
 # print(i.item.get_all())
 
-import re
+import requests
 
-url = "http://www.jianshu.com/search?q=python&page=1&type=note"
+url = "http://www.jianshu.com/p/deae0356a1df"
 
-if re.match("^http://www\.jianshu\.com/search\?q.*",url):
-    print(1)
-else:
-    print(123)
+item_header = {
+        "Host": "www.jianshu.com",
+        "Connection": "keep-alive",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36",
+        "Referer": "http://www.jianshu.com/search?q=python&page=1&type=note",
+        "Accept - Encoding": "gzip, deflate",
+        "Accept - Language": "zh-CN,zh;q=0.8",
+    }
+
+
+html = requests.get(url,headers=item_header)
+
+print(html.text,html.url,html.status_code)

@@ -9,4 +9,4 @@ def engine(spider_name):
     print(s.result)
 
 if __name__ == '__main__':
-    engine("testspider")
+    engine("jianshu")
