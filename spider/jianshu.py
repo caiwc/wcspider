@@ -53,8 +53,8 @@ class jianshu(Spider):
         elif re.match("(.*?p/.*?)", u):
             soup = BS(data, "html.parser")
             JI = JianshuItem()
-            JI.set("title", soup.find_all('h1',{'class':'title'}))
+            JI.set("title", soup.find_all('h1', {'class': 'title'}))
             print('hahaha')
-            return JI
+            return JI.get_all()
         else:
             pass

@@ -1,4 +1,3 @@
-
 import asyncio
 import aiohttp
 from base.filter import BaseFilter
@@ -74,9 +73,8 @@ class Spider(object):
         await self.queue.join()
         fetch.cancel()
 
-
     def run(self):
-        self.url_list.append({'url':None})
+        self.url_list.append({'url': None})
         self.loop = asyncio.get_event_loop()
         f = asyncio.wait([self.start_async(url) for url in self.url_list])
         try:
