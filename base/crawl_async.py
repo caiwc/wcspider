@@ -25,30 +25,26 @@ class Spider(object):
         headers = request_dict.get('headers', self.headers)
         cookies = request_dict.get('cookies', self.cookies)
         http_type = request_dict.get('http_type', self.http_type)
-        try:
-            with self.session or aiohttp.ClientSession(cookies=cookies, conn_timeout=1, read_timeout=1) as session:
-                async with session.request(method=self.method, url=url,
-                                           headers=headers, timeout=2) as r:
-                    print("get -> {}".format(url), "<code %s>" % str(r.status))
-                    if r.status == 200:
-                        if http_type == "json":
-                            data = await r.json()
-                        elif http_type == "read":
-                            data = await r.read()
-                        else:
-                            data = await r.text()
+        with self.session or aiohttp.ClientSession(cookies=cookies, conn_timeout=1) as session:
+            async with session.request(method=self.method, url=url,
+                                       headers=headers,timeout=2) as r:
+                print("get -> {}".format(url), "<code %s>" % str(r.status))
+                if r.status == 200:
+                    if http_type == "json":
+                        data = await r.json()
+                    elif http_type == "read":
+                        data = await r.read()
                     else:
-                        data = await None
-                await asyncio.sleep(sleep_time)
-                return data, r
-        except TimeoutError as te:
-            print('timeoutError:' + str(te))
-            return None, None
+                        data = await r.text()
+                else:
+                    data = None
+            await asyncio.sleep(sleep_time)
+            return data, r
 
     async def fetch_async(self):
         while True:
             request_dict = await self.queue.get()
-            if isinstance(request_dict, dict):
+            if isinstance(request_dict,dict):
                 url = request_dict['url']
                 if self.seen.add(url):
                     with (await self.sema):
@@ -62,8 +58,7 @@ class Spider(object):
 
     async def analysis_async(self, data, resp):
         res = self.parser(data, resp)
-        if res:
-            self.result.append(res)
+        self.result.append(res)
 
     async def start_async(self, item):
         fetch = asyncio.ensure_future(self.fetch_async())
@@ -71,33 +66,19 @@ class Spider(object):
         await self.queue.join()
         fetch.cancel()
 
-    async def handle_exception(self, item):
-        try:
-            await self.start_async(item)
-        except Exception:
-            print("exception consumed")
-
     def run(self):
         self.loop = asyncio.get_event_loop()
         f = asyncio.wait([self.start_async(url) for url in self.url_list])
-        try:
-            self.loop.run_until_complete(f)
-        except Exception:
-            print("exception consumed")
-            for task in asyncio.Task.all_tasks():
-                task.cancel()
-            self.loop.run_forever()
-        finally:
-            self.loop.close()
+        self.loop.run_until_complete(f)
+        self.stop()
 
-    async def stop(self):
-        while True:
+    def stop(self):
+        if self.queue.empty():
+            print('check')
+            sleep(1)
             if self.queue.empty():
-                print('check')
-                sleep(1)
-                if self.queue.empty():
-                    print('stop')
-                    self.loop.close()
+                print('stop')
+                self.loop.close()
 
     def parser(self, data, resp):
         # 解析数据
@@ -107,7 +88,8 @@ class Spider(object):
         # 添加协程进入事件循环
         # asyncio.ensure_future(self.put_async(url))
 
-        self.loop.create_task(self.put_async(url_dict))
+        task = self.loop.create_task(self.put_async(url_dict))
+        print(task)
 
     async def check(self, url):
         if not self.seen.add(url):

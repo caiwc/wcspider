@@ -1,6 +1,5 @@
 from base.crawl_async import Spider
 from urllib.parse import urljoin
-from bs4 import BeautifulSoup as BS
 from item import JianshuItem
 import re
 
@@ -16,7 +15,7 @@ class jianshu(Spider):
         "Accept - Language": "zh-CN,zh;q=0.8",
     }
 
-    url_list = [
+    url_list = [{"url": "http://www.jianshu.com/search/do?q=ldap&type=note&page=1&order_by=default"},
                 {"url": "http://www.jianshu.com/search/do?q=ldap&type=note&page=6&order_by=default"},
                 ]
     baser_url = "http://www.jianshu.com/"
@@ -40,9 +39,6 @@ class jianshu(Spider):
 
         if re.match("(.*?search/do\?q=ldap.*?)", u):
             page = data['page']
-            if int(page) > 10:
-                return
-
             self.put_url(
                 {"url": "http://www.jianshu.com/search/do?q=ldap&type=note&page={0}&order_by=default".format(page + 1)})
             for item in data["entries"]:
@@ -51,10 +47,9 @@ class jianshu(Spider):
             return
 
         elif re.match("(.*?p/.*?)", u):
-            soup = BS(data, "html.parser")
             JI = JianshuItem()
-            JI.set("title", soup.find_all('h1',{'class':'title'}))
+            JI.set("title", u)
             print('hahaha')
-            return JI.get_all()
+            return JI
         else:
             pass
