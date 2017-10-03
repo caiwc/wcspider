@@ -1,3 +1,4 @@
+
 import asyncio
 import aiohttp
 from base.filter import BaseFilter
@@ -48,7 +49,7 @@ class Spider(object):
     async def fetch_async(self):
         while True:
             request_dict = await self.queue.get()
-            if isinstance(request_dict, dict):
+            if isinstance(request_dict, dict) and request_dict['url']:
                 url = request_dict['url']
                 if self.seen.add(url):
                     with (await self.sema):
@@ -58,6 +59,8 @@ class Spider(object):
                 else:
                     self.queue.task_done()
             else:
+                await asyncio.sleep(1)
+                print('pass None url')
                 self.queue.task_done()
 
     async def analysis_async(self, data, resp):
@@ -71,13 +74,9 @@ class Spider(object):
         await self.queue.join()
         fetch.cancel()
 
-    async def handle_exception(self, item):
-        try:
-            await self.start_async(item)
-        except Exception:
-            print("exception consumed")
 
     def run(self):
+        self.url_list.append({'url':None})
         self.loop = asyncio.get_event_loop()
         f = asyncio.wait([self.start_async(url) for url in self.url_list])
         try:

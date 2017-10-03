@@ -17,8 +17,8 @@ class jianshu(Spider):
     }
 
     url_list = [
-                {"url": "http://www.jianshu.com/search/do?q=ldap&type=note&page=6&order_by=default"},
-                ]
+        {"url": "http://www.jianshu.com/search/do?q=ldap&type=note&page=6&order_by=default"},
+    ]
     baser_url = "http://www.jianshu.com/"
     headers = {
         "Host": "www.jianshu.com",
@@ -55,6 +55,6 @@ class jianshu(Spider):
             JI = JianshuItem()
             JI.set("title", soup.find_all('h1',{'class':'title'}))
             print('hahaha')
-            return JI.get_all()
+            return JI
         else:
             pass
