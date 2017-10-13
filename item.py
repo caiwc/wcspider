@@ -9,3 +9,4 @@ class TestItem(Item):
 class JianshuItem(Item):
     title = Field()
     content = Field()
+    url = Field()

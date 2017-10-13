@@ -1,9 +1,9 @@
 import asyncio
 import aiohttp
 from base.filter import BaseFilter
-from settings import Queue_num, Semaphore_num, sleep_time
+from settings import Queue_num, Semaphore_num, sleep_time,PIPELINE
 from time import sleep
-
+from base.utils import get_handle
 
 class Spider(object):
     url_list = []
@@ -65,6 +65,10 @@ class Spider(object):
     async def analysis_async(self, data, resp):
         res = self.parser(data, resp)
         if res:
+            for path in PIPELINE:
+                handle = get_handle(path)
+                if handle:
+                    handle.item_handle(res)
             self.result.append(res)
 
     async def start_async(self, item):

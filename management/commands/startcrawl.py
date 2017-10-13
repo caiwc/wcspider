@@ -1,5 +1,5 @@
-from importlib import import_module
 from management.base import BaseCommand
+from timeit import timeit
 
 
 class Command(BaseCommand):
@@ -12,12 +12,9 @@ class Command(BaseCommand):
 
         spider_name = options['spider']
         try:
-            module = import_module("spider.%s" % spider_name)
-            spider = getattr(module, spider_name.lower())
             self.stdout.write("开始爬虫")
-            s = spider()
-            s.run()
-            print(s.result.__len__())
-            self.stdout.write("结束爬虫")
+            spider_time = timeit("engine('{}')".format(spider_name.lower()), setup="from base.engine import engine",
+                                 number=1)
+            self.stdout.write("结束爬虫 耗时{}".format(str(spider_time)))
         except Exception as e:
             self.stderr.write(str(e))
