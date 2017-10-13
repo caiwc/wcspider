@@ -1,0 +1,4 @@
+elasticsearch-dsl
+bs4
+urllib
+timeit
