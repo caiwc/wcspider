@@ -10,3 +10,8 @@ class JianshuItem(Item):
     title = Field()
     content = Field()
     url = Field()
+    ctime = Field()
+    like = Field()
+    comment = Field()
+    view = Field()
+    wordage = Field()

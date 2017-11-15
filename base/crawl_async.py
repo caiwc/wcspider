@@ -25,9 +25,10 @@ class Spider(object):
         headers = request_dict.get('headers', self.headers)
         cookies = request_dict.get('cookies', self.cookies)
         http_type = request_dict.get('http_type', self.http_type)
+        method = request_dict.get('method', self.method)
         try:
             with self.session or aiohttp.ClientSession(cookies=cookies, conn_timeout=1, read_timeout=1) as session:
-                async with session.request(method=self.method, url=url,
+                async with session.request(method=method, url=url,
                                            headers=headers, timeout=2) as r:
                     print("get -> {}".format(url), "<code %s>" % str(r.status))
                     if r.status == 200:
